@@ -28,7 +28,7 @@ namespace CompanyServices.Api.Controllers
         {
             try
             {
-                // Check if UserId exists in HttpContext
+               
                 if (!HttpContext.Items.TryGetValue("UserId", out var userIdObj) || userIdObj == null)
                 {
                     return Unauthorized("User not authenticated.");
@@ -60,46 +60,46 @@ namespace CompanyServices.Api.Controllers
 
        
 
-        [HttpGet("get-selected-company")]
-        public async Task<ActionResult> GetSelectedCompany()
-        {
-            try
-            {
-                // Check if the CompanyId is available in HttpContext.Items
-                if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
-                {
-                    return Unauthorized("Company not found.");
-                }
-                var companyId = Convert.ToInt32(companyIdObj);
+        //[HttpGet("get-selected-company")]
+        //public async Task<ActionResult> GetSelectedCompany()
+        //{
+        //    try
+        //    {
+        //        // Check if the CompanyId is available in HttpContext.Items
+        //        if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
+        //        {
+        //            return Unauthorized("Company not found.");
+        //        }
+        //        var companyId = Convert.ToInt32(companyIdObj);
 
-                var request = new GetSelectedCompany(companyId);
+                
                
-                    var response = await _mediator.Send(request);
-                    // You can use the companyId for whatever you need
-                    return Ok(response);  // Returning the companyId in response
+        //            var response = await _mediator.Send(request);
+        //            // You can use the companyId for whatever you need
+        //            return Ok(response);  // Returning the companyId in response
                   
                 
            
                
         
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error fetching selected company: {ex.Message}");
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Error fetching selected company: {ex.Message}");
+        //    }
+        //}
 
         [HttpPost("add-company-role")]
         public async Task<ActionResult> CreateCompanyRole([FromForm] CreateCompanyRoles createCompanyRoles)
         {
             try
             {
-                // Ensure UserId is in HttpContext
-                if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
-                {
-                    return Unauthorized("Company id missing.");
-                }
-                createCompanyRoles.CompanyId = Convert.ToInt32(companyIdObj);
+               
+                //if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
+                //{
+                //    return Unauthorized("Company id missing.");
+                //}
+                //createCompanyRoles.CompanyId = Convert.ToInt32(companyIdObj);
 
                 var response = await _mediator.Send(createCompanyRoles);
                 return Ok(response);
@@ -278,6 +278,43 @@ namespace CompanyServices.Api.Controllers
             };
             var response = await _mediator.Send(query);
             return Ok(response);
+        }
+
+        [HttpGet("get-accountants")]
+        public async Task<ActionResult>RetriveAccountants()
+        {
+            if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
+            {
+                return Unauthorized("Company not found.");
+            }
+            var comapnyId = Convert.ToInt32(companyIdObj);
+                var query = new GetAccountantQuary(comapnyId);
+            var accountants = await _mediator.Send(query);
+            return Ok(accountants);
+        }
+        [HttpGet("get-managers")]
+        public async Task<ActionResult> RetriveManagers()
+        {
+            if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
+            {
+                return Unauthorized("Company not found.");
+            }
+            var comapnyId = Convert.ToInt32(companyIdObj);
+            var query = new GetManagerQuary(comapnyId);
+            var accountants = await _mediator.Send(query);
+            return Ok(accountants);
+        }
+        [HttpGet("get-employees")]
+        public async Task<ActionResult> RetrieveEmployees()
+        {
+            if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
+            {
+                return Unauthorized("Company not found.");
+            }
+            var comapnyId = Convert.ToInt32(companyIdObj);
+            var query = new GetEmployeeQuary(comapnyId);
+            var accountants = await _mediator.Send(query);
+            return Ok(accountants);
         }
     }
 }

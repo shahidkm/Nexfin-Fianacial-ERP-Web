@@ -58,6 +58,7 @@ namespace InventoryAndAccountingServices.Api.Controllers
             var companyId = Convert.ToInt32(companyIdObj);
 
             var group = new InventoryLedgerCommand(
+                LedgerId:command.LedgerId,
       CompanyId: companyId,
       LedgerName:command.LedgerName,
       Alias: command.Alias,

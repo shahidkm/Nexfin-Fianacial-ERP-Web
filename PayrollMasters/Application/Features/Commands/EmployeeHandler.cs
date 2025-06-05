@@ -3,6 +3,7 @@ using MediatR;
 using PayrollMasters.Application.Features.Commands;
 using PayrollMasters.Application.Interfaces;
 using PayrollMasters.Domain.Entities;
+using PayrollService.Infrastucture.Persistence.Services.CloudinaryServices;
 
 namespace PayrollService.Application.Features.Commands
 {
@@ -11,18 +12,39 @@ namespace PayrollService.Application.Features.Commands
 
         private readonly IEmployeeRepository _repository;
         private readonly IMapper _mapper;
+        private readonly ICloudinaryService _cloudinary;
 
-        public EmployeeHandler(IEmployeeRepository employeeRepository,IMapper mapper)
+        public EmployeeHandler(IEmployeeRepository employeeRepository,IMapper mapper,ICloudinaryService cloudinaryService)
         {
             _repository = employeeRepository;
             _mapper = mapper;
+            _cloudinary = cloudinaryService;
         }
 
 
-        public Task<string> Handle(EmployeeCommand request, CancellationToken cancellationToken)
+        public async Task<string> Handle(EmployeeCommand request, CancellationToken cancellationToken)
         {
-            var employee = _mapper.Map<Employee>(request);
-            var result = _repository.CreateEmployee(employee);
+            var image=await _cloudinary.EmployeeImage(request.Image);
+            var employee =  new Employee
+            {
+                FullName=request.FullName,
+                Address=request.Address,
+                CompanyId=request.CompanyId,
+                GroupId=request.GroupId,
+                Designation=request.Designation,
+                DateOfBirth=request.DateOfBirth,
+                Department=request.Department,
+                BankAccountNumber=request.BankAccountNumber,
+                BankName=request.BankName,
+               BasicSalary=request.BasicSalary,
+               Email=request.Email,
+               Gender=request.Gender,
+               Phone=request.Phone,
+               IFSC=request.IFSC,
+               Image=image
+             };
+            
+            var result = await _repository.CreateEmployee(employee);
             return result;
         }
     }

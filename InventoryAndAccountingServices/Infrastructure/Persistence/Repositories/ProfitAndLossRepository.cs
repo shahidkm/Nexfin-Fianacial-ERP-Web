@@ -10,9 +10,9 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
     {
         private readonly AppDbContext _context;
 
-        public ProfitAndLossRepository(AppDbContext context)
+        public ProfitAndLossRepository(AppDbContext appDbContext)
         {
-            _context = context;
+            _context = appDbContext;
         }
 
         public async Task<ProfitAndLossDto> GetProfitAndLossAsync(int companyId, DateTime fromDate, DateTime toDate)
@@ -26,22 +26,42 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                 .ToListAsync();
 
             var ledgers = await _context.InventoryLedgers
-                .Where(l => l.CompanyId == companyId && l.CreatedDate.Date >= fromDate && l.CreatedDate.Date <= toDate && l.GroupId != null)
+                .Where(l => l.CompanyId == companyId && l.GroupId != null)
                 .ToListAsync();
+
+     
+            var voucherEntries = await _context.VoucherEntries
+                .Where(e => e.Ledger.CompanyId == companyId
+                            && e.Voucher.Date.Date >= fromDate
+                            && e.Voucher.Date.Date <= toDate)
+                .ToListAsync();
+
+            var ledgerBalances = voucherEntries
+                .GroupBy(e => e.LedgerId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(x => x.EntryType == EntryType.Debit ? x.Amount : -x.Amount)
+                );
 
             var balanceByGroup = ledgers
                 .GroupBy(l => l.GroupId)
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Balance));
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(l => ledgerBalances.TryGetValue(l.LedgerId, out var bal) ? bal : 0)
+                );
 
+           
             ProfitAndLossLine BuildLine(InventoryGroup g)
             {
                 var own = balanceByGroup.TryGetValue(g.GroupId, out var bal) ? Math.Abs(bal) : 0m;
+
                 var line = new ProfitAndLossLine
                 {
                     GroupName = g.GroupName,
                     Amount = own
                 };
 
+             
                 if (g.ChildGroups?.Any() == true)
                 {
                     line.Children = g.ChildGroups
@@ -55,20 +75,23 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                 return line;
             }
 
+            
             var incomeGroups = groups
-                .Where(g => g.ParentGroupId == null && (g.Nature == GroupNature.Income))
+                .Where(g => g.ParentGroupId == null && g.Nature == GroupNature.Income)
                 .Select(BuildLine)
                 .ToList();
 
             var expenseGroups = groups
-                .Where(g => g.ParentGroupId == null && (g.Nature == GroupNature.Expense))
+                .Where(g => g.ParentGroupId == null && g.Nature == GroupNature.Expense)
                 .Select(BuildLine)
                 .ToList();
 
-            var totalIncome = incomeGroups.Sum(i => i.Amount);
-            var totalExpenses = expenseGroups.Sum(e => e.Amount);
+    
+            var totalIncome = incomeGroups.Sum(g => g.Amount);
+            var totalExpenses = expenseGroups.Sum(g => g.Amount);
 
-            var netProfitOrLoss = totalIncome - totalExpenses;
+      
+            decimal netProfitOrLoss = totalIncome - totalExpenses;
 
             return new ProfitAndLossDto
             {

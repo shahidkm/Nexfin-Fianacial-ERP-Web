@@ -68,7 +68,7 @@ namespace LicenseService.Infrastructure.Persistence.Repositories
             }
             catch (Exception ex)
             {
-                // Ideally log the error before returning
+                
                 return $"Error: {ex.Message}";
             }
         }

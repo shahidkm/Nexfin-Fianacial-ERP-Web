@@ -12,5 +12,7 @@ namespace InventoryAndAccountingServices.Application.Interfaces
         Task<List<StockGroup>> RetriveStockGroups(int CompanyId);
         Task<List<StockCategory>> RetriveStockCategory(int CompanyId);
         Task<List<UnitOfMeasure>> RetriveStockUnits(int CompanyId);
+        Task<List<StockItem>> RetriveStockItems(int CompanyId);
+        Task<string> RetriveLedgerBalance(int Id);
     }
 }

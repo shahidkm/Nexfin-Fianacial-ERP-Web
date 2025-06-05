@@ -289,6 +289,41 @@ namespace CompanyServices.Infrastructure.Persistanse.Repositories
             return roles;
         }
 
+        public async Task<List<CompanyRole>> RetriveAccountants(int companyId)
+        {
+            if (companyId == null)
+            {
+                _logger.LogError("Company not Found");
 
+            }
+            var company= await _context.CompanyRoles.Where(r => r.CompanyId == companyId).ToListAsync();
+            var roles =  company.Where(c => c.Type == "Accountant").ToList();
+
+            return roles;
+        }
+        public async Task<List<CompanyRole>> RetriveManagers(int companyId)
+        {
+            if (companyId == null)
+            {
+                _logger.LogError("Company not Found");
+
+            }
+            var company = await _context.CompanyRoles.Where(r => r.CompanyId == companyId).ToListAsync();
+            var roles = company.Where(c => c.Type == "Manager").ToList();
+
+            return roles;
+        }
+        public async Task<List<CompanyRole>> RetriveEmployees(int companyId)
+        {
+            if (companyId == null)
+            {
+                _logger.LogError("Company not Found");
+
+            }
+            var company = await _context.CompanyRoles.Where(r => r.CompanyId == companyId).ToListAsync();
+            var roles = company.Where(c => c.Type == "Employee").ToList();
+
+            return roles;
+        }
     }
 }

@@ -3,6 +3,7 @@ using InventoryAndAccountingServices.Contracts;
 using InventoryAndAccountingServices.Domain.Entities;
 using InventoryAndAccountingServices.Domain.Enums;
 using InventoryAndAccountingServices.Infrastructure.Persistence.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
 {
@@ -17,9 +18,9 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
 
         public async Task<string> CreateVoucherAsync(CreateVoucherDto dto)
         {
-            // Step 1: Create voucher
+           
             var voucher = new Voucher
-            {
+            {CompanyId = dto.CompanyId,
                 VoucherNumber = dto.VoucherNumber,
                 Type = dto.Type,
                 Date = dto.Date,
@@ -44,7 +45,6 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                 }).ToList()
             };
 
-            // Step 2: Add Dispatch Details
             if (dto.DispatchDetails != null)
             {
                 voucher.DispatchDetails = new DispatchDetails
@@ -59,17 +59,16 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                 };
             }
 
-            // Step 3: Add Voucher to DB
+          
             _context.Vouchers.Add(voucher);
 
-            // Step 4: Update Ledger Balances
+           
             foreach (var entry in dto.Entries)
             {
                 var ledger = await _context.InventoryLedgers.FindAsync(entry.LedgerId);
                 if (ledger == null)
                     throw new Exception("Ledger not found");
 
-                // Apply balance update based on enum
                 if (entry.EntryType == EntryType.Debit)
                     ledger.Balance += entry.Amount;
                 else if (entry.EntryType == EntryType.Credit)
@@ -78,7 +77,6 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                 _context.InventoryLedgers.Update(ledger);
             }
 
-            // Step 5: Update Stock Quantities (Only for Sales and Purchase Vouchers)
             if (dto.Type == VoucherType.Sales || dto.Type == VoucherType.Purchase)
             {
                 foreach (var item in dto.Items ?? new List<CreateVoucherItemDto>())
@@ -87,7 +85,7 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                     if (stockItem == null)
                         throw new Exception("Stock item not found");
 
-                    // Purchase: Increase stock, Sales: Decrease stock
+                 
                     if (dto.Type == VoucherType.Purchase)
                         stockItem.Quantity += item.Quantity;
                     else if (dto.Type == VoucherType.Sales)
@@ -100,5 +98,30 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
             await _context.SaveChangesAsync();
             return ("Voucher Created Successfully");
         }
+
+
+        public async Task<List<Voucher>> GetAllVouchersByCompanyIdAsync(int companyId)
+        {
+            return await _context.Vouchers
+                .Where(v => v.CompanyId == companyId) 
+                .ToListAsync();
+        }
+
+        public async Task<List<Voucher>> GetDifferentVouchersByCompanyIdAsync( int companyId, VoucherType voucherType)
+        {
+            return await _context.Vouchers
+                .Where(v => v.CompanyId == companyId && v.Type == voucherType)
+                .ToListAsync();
+        }
+        public async Task<List<Voucher>> DayBook(int companyId)
+        {
+            DateTime today = DateTime.Today; // same as DateTime.Now.Date
+
+            return await _context.Vouchers
+                .Include(v => v.Entries) // Eager load voucher entries
+                .Where(v => v.CompanyId == companyId && v.Date.Date == today)
+                .ToListAsync();
+        }
+
     }
 }

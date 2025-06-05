@@ -10,6 +10,7 @@ namespace InventoryAndAccountingServices.Domain.Entities
         public int CompanyId { get; set; }
         public string UnitName { get; set; }
         public string Symbol { get; set; }  
+        public string QuantityCode { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
      

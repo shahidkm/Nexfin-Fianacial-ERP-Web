@@ -13,7 +13,6 @@ namespace LicenseService.Application.Features.Commands
         public string Pincode { get; set; }
 
 
-        public string VerificationCode { get; set; }
 
     }
 }

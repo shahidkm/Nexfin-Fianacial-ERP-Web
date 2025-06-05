@@ -25,7 +25,7 @@ namespace PayrollMasters.Domain.Entities
         public string? BankName { get; set; }
         public string? BankAccountNumber { get; set; }
         public string? IFSC { get; set; }
-
+        public string Image { get; set; }
         public decimal BasicSalary { get; set; }
 
         // Navigation

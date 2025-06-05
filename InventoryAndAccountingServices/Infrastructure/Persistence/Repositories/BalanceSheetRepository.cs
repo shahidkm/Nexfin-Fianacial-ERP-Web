@@ -19,23 +19,22 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
         {
             asOnDate = asOnDate.Date;
 
-            // Load all groups
+   
             var groups = await _context.InventoryGroups
                 .Where(g => g.CompanyId == companyId && g.Nature != null)
                 .Include(g => g.ChildGroups)
                 .ToListAsync();
 
-            // Load all ledgers
             var ledgers = await _context.InventoryLedgers
                 .Where(l => l.CompanyId == companyId && l.GroupId != null)
                 .ToListAsync();
 
-            // Load all voucher entries until asOnDate
+  
             var voucherEntries = await _context.VoucherEntries
                 .Where(e => e.Ledger.CompanyId == companyId && e.Voucher.Date.Date <= asOnDate)
                 .ToListAsync();
 
-            // Calculate ledger balances from voucher entries
+          
             var ledgerBalances = voucherEntries
                 .GroupBy(e => e.LedgerId)
                 .ToDictionary(
@@ -43,7 +42,7 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                     g => g.Sum(x => x.EntryType == EntryType.Debit ? x.Amount : -x.Amount)
                 );
 
-            // Group balances based on group id
+
             var balanceByGroup = ledgers
                 .GroupBy(l => l.GroupId)
                 .ToDictionary(
@@ -51,7 +50,6 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                     g => g.Sum(l => ledgerBalances.TryGetValue(l.LedgerId, out var bal) ? bal : 0)
                 );
 
-            // Build balance sheet lines
             BalanceSheetLine BuildLine(InventoryGroup g)
             {
                 var own = balanceByGroup.TryGetValue(g.GroupId, out var bal) ? Math.Abs(bal) : 0m;
@@ -75,7 +73,7 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                 return line;
             }
 
-            // Build Assets, Liabilities, Incomes, Expenses separately
+        
             var assetGroups = groups
                 .Where(g => g.ParentGroupId == null && g.Nature == GroupNature.Asset)
                 .Select(BuildLine)
@@ -96,17 +94,17 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
                 .Select(BuildLine)
                 .ToList();
 
-            // Calculate totals
+          
             var totalAssets = assetGroups.Sum(g => g.Amount);
             var totalLiabilities = liabilityGroups.Sum(g => g.Amount);
 
             var totalIncome = incomeGroups.Sum(g => g.Amount);
             var totalExpenses = expenseGroups.Sum(g => g.Amount);
 
-            // Calculate Net Profit or Loss
+     
             decimal netProfit = totalIncome - totalExpenses;
 
-            // Add Net Profit/Loss to Liabilities
+       
             if (netProfit != 0)
             {
                 var profitLossLine = new BalanceSheetLine

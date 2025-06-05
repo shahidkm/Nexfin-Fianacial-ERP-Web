@@ -19,7 +19,7 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
         {
             try
             {
-                await _context.StockGroups.AddAsync(stockGroup);
+                 _context.StockGroups.AddAsync(stockGroup);
                 await _context.SaveChangesAsync();
 
                 return ("Created Successfully");
@@ -106,6 +106,19 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
         {
             var units = await _context.UnitOfMeasures.Where(g => g.CompanyId == CompanyId).ToListAsync();
             return units;
+        }
+        public async Task<List<StockItem>> RetriveStockItems(int CompanyId)
+        {
+            var units = await _context.StockItems.Where(g => g.CompanyId == CompanyId).ToListAsync();
+            return units;
+        }
+        public async Task<string>RetriveLedgerBalance(int Id)
+        {
+            var balance = await _context.InventoryLedgers
+         .Where(l => l.LedgerId == Id)
+         .Select(l => l.Balance)
+         .SingleOrDefaultAsync();
+            return balance.ToString();
         }
     }
 

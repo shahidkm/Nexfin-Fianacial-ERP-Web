@@ -69,6 +69,7 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
 
             var result = ledgers.Select(l => new GetInventoryLedgerDto
             {
+                LedgerId = l.LedgerId,
                 CompanyId = l.CompanyId,
                 GroupName = groups.FirstOrDefault(g => g.GroupId == l.GroupId)?.GroupName,
                 Alias = l.Alias,
@@ -84,9 +85,9 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Repositories
 
         public async Task<string> CreateDefaultInventoryGroupsAsync(int companyId)
         {
-            // 1) Don’t reseed if any groups already exist for this company
-            if (await _context.InventoryGroups.AnyAsync(g => g.CompanyId == companyId))
-                return "Default groups already exist for this company.";
+            //// 1) Don’t reseed if any groups already exist for this company
+            //if (await _context.InventoryGroups.AnyAsync(g => g.CompanyId == companyId))
+            //    return "Default groups already exist for this company.";
 
             // 2) Define the 15 primary groups (Balance-Sheet + P&L) with Nature
             var rootDefs = new List<(string Name, GroupNature Nature)>

@@ -70,6 +70,16 @@ namespace InventoryAndAccountingServices.Infrastructure.Persistence.Data
                 .Property(e => e.Quantity)
                 .HasPrecision(18, 4);
 
+            modelBuilder.Entity<VoucherEntry>()
+    .HasOne(e => e.Voucher)
+    .WithMany(v => v.Entries)
+    .HasForeignKey(e => e.VoucherId);
+
+            modelBuilder.Entity<VoucherEntry>()
+        .HasOne(e => e.Ledger)
+        .WithMany() // still assuming Ledger doesn't track entries
+        .HasForeignKey(e => e.LedgerId);
+
 
         }
     }

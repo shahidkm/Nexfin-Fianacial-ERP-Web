@@ -1,5 +1,6 @@
 ﻿using InventoryAndAccountingServices.Domain.Enums;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Text.Json.Serialization;
 
 namespace InventoryAndAccountingServices.Domain.Entities
 {
@@ -8,6 +9,7 @@ namespace InventoryAndAccountingServices.Domain.Entities
     {
         public int Id { get; set; }
         public int VoucherId { get; set; }
+        [JsonIgnore] 
         public Voucher Voucher { get; set; }
 
         public int LedgerId { get; set; }

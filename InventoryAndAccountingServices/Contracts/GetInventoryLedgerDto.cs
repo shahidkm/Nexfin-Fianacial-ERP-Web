@@ -2,6 +2,7 @@
 {
     public class GetInventoryLedgerDto
     {
+        public int LedgerId { get; set; }
         public string LedgerName { get; set; }
 
         public int CompanyId { get; set; }

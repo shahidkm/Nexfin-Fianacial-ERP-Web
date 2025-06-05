@@ -6,6 +6,7 @@ namespace PayrollMasters.Domain.Entities
     {
         [Key]
         public int PayHeadId { get; set; }
+        public int CompanyId { get; set; }
         public string Name { get; set; } // e.g. Basic, HRA
         public string Type { get; set; } // Earnings or Deductions
         public string CalculationType { get; set; } // Fixed, Percentage, AttendanceBased

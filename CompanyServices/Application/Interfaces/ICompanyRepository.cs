@@ -22,5 +22,8 @@ namespace CompanyServices.Application.Interfaces
         Task<string> DeleteCompany(int CompanyId);
         Task<string>BlockorUnblock(int CompanyId);
         Task<List<CompanyRole>> RetriveUserRoles(string UserId);
+        Task<List<CompanyRole>> RetriveAccountants(int companyId);
+        Task<List<CompanyRole>> RetriveManagers(int companyId);
+        Task<List<CompanyRole>> RetriveEmployees(int companyId);
     }
 }

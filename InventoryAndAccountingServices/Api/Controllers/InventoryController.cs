@@ -13,14 +13,14 @@ namespace InventoryAndAccountingServices.Api.Controllers
         private readonly IMediator _mediator;
         private readonly IInventoryMastersRepository _inventoryRepository;
 
-        public InventoryController(IMediator mediator,IInventoryMastersRepository inventoryMastersRepository)
+        public InventoryController(IMediator mediator, IInventoryMastersRepository inventoryMastersRepository)
         {
             _mediator = mediator;
             _inventoryRepository = inventoryMastersRepository;
         }
         [HttpPost("create-stock-group")]
 
-        public async Task<ActionResult> CreateStockGroup(StockGroupCommand stockGroupCommand)
+        public async Task<ActionResult> CreateStockGroup([FromForm] StockGroupCommand stockGroupCommand)
         {
             if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
             {
@@ -41,7 +41,7 @@ namespace InventoryAndAccountingServices.Api.Controllers
         [HttpPost("create-stock-category")]
 
 
-        public async Task<ActionResult> CreateStockCategory(StockCategoryCommand stockCategoryCommand)
+        public async Task<ActionResult> CreateStockCategory([FromForm] StockCategoryCommand stockCategoryCommand)
         {
             if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
             {
@@ -60,7 +60,7 @@ namespace InventoryAndAccountingServices.Api.Controllers
 
         [HttpPost("create-units")]
 
-        public async Task<ActionResult> CreateUnitOfMeasure(UnitOfMeasureCommand unitOfMeasureCommand)
+        public async Task<ActionResult> CreateUnitOfMeasure([FromForm] UnitOfMeasureCommand unitOfMeasureCommand)
         {
             if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
             {
@@ -71,7 +71,9 @@ namespace InventoryAndAccountingServices.Api.Controllers
             var unit = new UnitOfMeasureCommand(
                 CompanyId: companyId,
                 UnitName: unitOfMeasureCommand.UnitName,
-                Symbol: unitOfMeasureCommand.Symbol
+                Symbol: unitOfMeasureCommand.Symbol,
+                QuantityCode:unitOfMeasureCommand.QuantityCode
+
                 );
             var Response = await _mediator.Send(unit);
             return Ok(Response);
@@ -80,7 +82,7 @@ namespace InventoryAndAccountingServices.Api.Controllers
 
         [HttpPost("create-godowns")]
 
-        public async Task<ActionResult> CreateGodowns(GodownCommand godownCommand)
+        public async Task<ActionResult> CreateGodowns( [FromForm] GodownCommand godownCommand)
         {
 
             if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
@@ -108,7 +110,7 @@ namespace InventoryAndAccountingServices.Api.Controllers
                 return Unauthorized("Company not found.");
             }
             var companyId = Convert.ToInt32(companyIdObj);
-            var item= new StockItemCommand(
+            var item = new StockItemCommand(
                 CompanyId: companyId,
                 ItemName: stockItemCommand.ItemName,
                 GroupId: stockItemCommand.GroupId,
@@ -116,11 +118,11 @@ namespace InventoryAndAccountingServices.Api.Controllers
                 UnitId: stockItemCommand.UnitId,
                 OpeningQty: stockItemCommand.OpeningQty,
                 OpeningRate: stockItemCommand.OpeningRate,
-                IsGstApplicable:stockItemCommand.IsGstApplicable,
-             
-                HsnSacCode:stockItemCommand.HsnSacCode,
+                IsGstApplicable: stockItemCommand.IsGstApplicable,
+
+                HsnSacCode: stockItemCommand.HsnSacCode,
                    GstRate: stockItemCommand.GstRate,
-                   TypeOfSupply:stockItemCommand.TypeOfSupply
+                   TypeOfSupply: stockItemCommand.TypeOfSupply
 
 
 
@@ -172,6 +174,37 @@ namespace InventoryAndAccountingServices.Api.Controllers
             var categories = await _inventoryRepository.RetriveStockUnits(companyId);
 
             return Ok(categories);
+        }
+
+
+        [HttpGet("get-items")]
+        public async Task<ActionResult> RetriveStockItems()
+        {
+            if (!HttpContext.Items.TryGetValue("CompanyId", out var companyIdObj) || companyIdObj == null)
+            {
+                return Unauthorized("Company not found.");
+            }
+            var companyId = Convert.ToInt32(companyIdObj);
+            var categories = await _inventoryRepository.RetriveStockItems(companyId);
+
+            return Ok(categories);
+        }
+
+        [HttpGet("ledger-balance")]
+        public async Task<ActionResult> RetriveLederBalance(int Id)
+        {
+            try
+            {
+                var balance = await _inventoryRepository.RetriveLedgerBalance(Id);
+                return Ok(balance);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
+
+
         }
     }
 }
